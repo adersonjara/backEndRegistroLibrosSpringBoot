@@ -58,8 +58,8 @@ public class LibroController {
 	}
 	
 	@PutMapping("/{id}")
-	public ApiResponse<Libro> actualizar(@PathVariable Long id, @RequestBody Libro libro) {
-		Libro libroActualizado = libroService.update(id, libro);
+	public ApiResponse<LibroDto> actualizar(@PathVariable Long id, @RequestBody LibroDto libroDto) {
+		LibroDto libroActualizado = libroService.updateDto(id, libroDto);
 		return new ApiResponse<>("200",libroActualizado,"Libro Actualizado Correctamente","");
 	}
 	

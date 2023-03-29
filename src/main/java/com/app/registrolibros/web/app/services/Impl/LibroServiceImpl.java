@@ -1,11 +1,20 @@
 package com.app.registrolibros.web.app.services.Impl;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import org.mapstruct.factory.Mappers;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.app.registrolibros.web.app.dto.AutorDto;
 import com.app.registrolibros.web.app.dto.LibroDto;
+import com.app.registrolibros.web.app.entities.Autor;
 import com.app.registrolibros.web.app.entities.Libro;
+import com.app.registrolibros.web.app.payload.AutorMapper;
+import com.app.registrolibros.web.app.payload.TipoLibroMapper;
 import com.app.registrolibros.web.app.repositories.LibroRepository;
 import com.app.registrolibros.web.app.services.LibroService;
 
@@ -14,6 +23,10 @@ public class LibroServiceImpl implements LibroService {
 	
 	@Autowired
 	private LibroRepository libroRepository;
+		
+	AutorMapper autorMapper = Mappers.getMapper(AutorMapper.class);
+	
+	TipoLibroMapper tipoLibroMapper = Mappers.getMapper(TipoLibroMapper.class);
 	
 	@Autowired
 	private ModelMapper modelMapper;
@@ -41,20 +54,33 @@ public class LibroServiceImpl implements LibroService {
 	}
 	
 	@Override
-	public Libro update(Long id, Libro libro) {
+	public LibroDto updateDto(Long id, LibroDto libroDto) {
+		
 		Libro libroActual = libroRepository.findById(id).orElse(null);
 		
 		if(libroActual != null) {
-			libroActual.setTitulo(libro.getTitulo());
-			libroActual.setISBN(libro.getISBN());
-			libroActual.setFechaPublicacion(libro.getFechaPublicacion());
-			libroActual.setTipoLibro(libro.getTipoLibro());
-			libroActual.setAutores(libro.getAutores());
+			
+			libroActual.setDescripcion(libroDto.getDescripcion());
+			libroActual.setTitulo(libroDto.getTitulo());
+			libroActual.setISBN(libroDto.getISBN());
+			libroActual.setFechaPublicacion(libroDto.getFechaPublicacion());
+			libroActual.setTipoLibro(tipoLibroMapper.toEntity(libroDto.getTipoLibro()));
+			
+			Set<Autor> autores = new HashSet<>();
+		    for (AutorDto autorDto : libroDto.getAutores()) {
+		        autores.add(autorMapper.toEntity(autorDto));
+		    }
+		    libroActual.setAutores(autores);
+		    
 			
 			libroRepository.save(libroActual);
+			
+			
 		}
 		
-		return libroActual;
+		return modelMapper.map(libroActual, LibroDto.class);
+		
+		
 	}
 	
 	@Override
