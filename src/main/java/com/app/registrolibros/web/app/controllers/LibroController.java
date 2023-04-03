@@ -1,8 +1,12 @@
 package com.app.registrolibros.web.app.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +20,7 @@ import com.app.registrolibros.web.app.dto.LibroDto;
 import com.app.registrolibros.web.app.entities.Libro;
 import com.app.registrolibros.web.app.entities.TipoLibro;
 import com.app.registrolibros.web.app.payload.ApiResponse;
+import com.app.registrolibros.web.app.payload.CampoError;
 import com.app.registrolibros.web.app.services.LibroService;
 import com.app.registrolibros.web.app.services.TipoLibroService;
 
@@ -30,37 +35,76 @@ public class LibroController {
 	private TipoLibroService tipoLibroService;
 	
 	@GetMapping
-	public ApiResponse<List<Libro>> listar(){
+	public ResponseEntity<?> listar(){
 		List<Libro> listaLibros = libroService.findAll();
-		return new ApiResponse<>("200",listaLibros,"Lista de todos los libros","");
+		ApiResponse<List<Libro>> response = new ApiResponse<>("200",listaLibros,"Lista de todos los libros",null);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 	
 	@GetMapping("/{id}")
-	public ApiResponse<Libro> obtenerPorId(@PathVariable Long id) {
+	public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
 		Libro libro = libroService.findById(id);
-		return new ApiResponse<>("200",libro,"Información de un solo libro","");
+		if(libro != null) {
+			ApiResponse<Libro> response = new ApiResponse<>("200",libro,"Información de un solo libro",null);
+			return new ResponseEntity<>(response,HttpStatus.OK);
+		}
+		ApiResponse<Libro> response = new ApiResponse<>("404",null,"Libro no encontrado",null);
+		return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
 	}
 	
 	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<LibroDto> crearLibro(@RequestBody LibroDto libroDto) {
-        LibroDto libroDtoGuardado = libroService.saveDto(libroDto);
-        return new ApiResponse<>("201",libroDtoGuardado,"Libro Registrado Correctamente","");
+	public ResponseEntity<?> crearLibro(@RequestBody LibroDto libroDto) {
+		List<CampoError> errores = new ArrayList<>();
+		
+		if (libroDto.getTipoLibro() == null) {
+	        errores.add(new CampoError("tipoLibro", "El tipo de libro es obligatorio"));
+	    }
+
+	    if (libroDto.getAutores() == null || libroDto.getAutores().isEmpty()) {
+	        errores.add(new CampoError("autores", "Se requiere al menos un autor"));
+	    }
+
+	    if (!errores.isEmpty()) {
+	        ApiResponse<List<CampoError>> response = new ApiResponse<>("400", null, "Solicitud Incorrecta", errores);
+	        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	    }
+		
+		try {
+			LibroDto libroDtoGuardado = libroService.saveDto(libroDto);
+	        ApiResponse<LibroDto> response = new ApiResponse<>("201",libroDtoGuardado,"Libro Registrado Correctamente",null);
+	        return new ResponseEntity<>(response, HttpStatus.CREATED);
+		} catch (DataIntegrityViolationException e) {
+	        if (e.getCause() instanceof ConstraintViolationException) {
+	            ConstraintViolationException constraintViolationException = (ConstraintViolationException) e.getCause();
+	            if (constraintViolationException.getConstraintName().contains("UK_ehuya6b4bxgkc4ru5wcf5njgr")) {
+					errores.add(new CampoError("ISBN", "El ISBN ya existe"));
+	            }
+	        }
+	        
+	        if (!errores.isEmpty()) {
+	            ApiResponse<List<CampoError>> response = new ApiResponse<>("400", null, "Solicitud Incorrecta", errores);
+	            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	        }
+	        
+	        ApiResponse<LibroDto> response = new ApiResponse<>("500", null, "Error interno del servidor", null);
+	        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }  
     }
 	
 	@PostMapping("/{tipoLibroId}/tipolibro")
-	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<Libro> crear(@RequestBody Libro libro,@PathVariable Long tipoLibroId) {
+	public ResponseEntity<?> crear(@RequestBody Libro libro,@PathVariable Long tipoLibroId) {
 		TipoLibro tipoLibro = tipoLibroService.findById(tipoLibroId);
 		libro.setTipoLibro(tipoLibro);
 		Libro libroGuardado = libroService.save(libro);
-		return new ApiResponse<>("201",libroGuardado,"Libro Registrado Correctamente","");
+		ApiResponse<Libro> response = new ApiResponse<>("201",libroGuardado,"Libro Registrado Correctamente",null);
+		return new ResponseEntity<>(response,HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/{id}")
-	public ApiResponse<LibroDto> actualizar(@PathVariable Long id, @RequestBody LibroDto libroDto) {
+	public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody LibroDto libroDto) {
 		LibroDto libroActualizado = libroService.updateDto(id, libroDto);
-		return new ApiResponse<>("200",libroActualizado,"Libro Actualizado Correctamente","");
+		ApiResponse<LibroDto> response = new ApiResponse<>("200",libroActualizado,"Libro Actualizado Correctamente",null);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/{id}")

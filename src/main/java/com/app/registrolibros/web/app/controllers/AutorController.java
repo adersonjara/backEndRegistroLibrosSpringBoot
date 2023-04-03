@@ -3,6 +3,7 @@ package com.app.registrolibros.web.app.controllers;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,28 +25,39 @@ public class AutorController {
 	private AutorService autorService;
 	
 	@GetMapping
-	public ApiResponse<List<Autor>> listar(){
+	public ResponseEntity<?> listar(){
 		List<Autor> listaAutores = autorService.findAll();
-		return new ApiResponse<>("200",listaAutores,"Lista de todos los autores","");
+		ApiResponse<List<Autor>> response = new ApiResponse<>("200",listaAutores,"Lista de todos los autores",null);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 	
 	@GetMapping("/{id}")
-	public ApiResponse<Autor> obtenerPorId(@PathVariable Long id) {
+	public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
 		Autor autor = autorService.findById(id);
-		return new ApiResponse<>("200",autor,"Información de un solo autor","");
+		if(autor==null) {
+			ApiResponse<Autor> response = new ApiResponse<>("404",null,"Autor no encontrado",null);
+			return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+		}
+		ApiResponse<Autor> response = new ApiResponse<>("200",autor,"Información de un solo autor",null);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 	
 	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<Autor> crear(@RequestBody Autor autor) {
+	public ResponseEntity<?> crear(@RequestBody Autor autor) {
 		Autor autorGuardado = autorService.save(autor);
-		return new ApiResponse<>("201",autorGuardado,"Autor Registrado Correctamente","");
+		ApiResponse<Autor> response = new ApiResponse<>("201",autorGuardado,"Autor Registrado Correctamente",null);
+		return new ResponseEntity<>(response,HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/{id}")
-	public ApiResponse<Autor> actualizar(@PathVariable Long id, @RequestBody Autor autor) {
+	public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Autor autor) {
 		Autor autorActualizado = autorService.update(id, autor);
-		return new ApiResponse<>("200",autorActualizado,"Autor Actualizado Correctamente","");
+		if(autorActualizado == null) {
+			ApiResponse<Autor> response = new ApiResponse<>("404",null,"Autor no encontrado",null);
+			return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+		}
+		ApiResponse<Autor> response = new ApiResponse<>("200",autorActualizado,"Autor Actualizado Correctamente",null);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/{id}")

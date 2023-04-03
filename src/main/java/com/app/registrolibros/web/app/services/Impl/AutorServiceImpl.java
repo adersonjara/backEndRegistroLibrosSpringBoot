@@ -20,7 +20,11 @@ public class AutorServiceImpl implements AutorService{
 	
 	@Override
 	public Autor findById(Long id) {
-		return autorRepository.findById(id).orElse(null);
+		Autor autor = autorRepository.findById(id).orElse(null);
+		if(autor != null) {
+			return autor;
+		}
+		return null;
 	}
 	
 	@Override
@@ -36,9 +40,10 @@ public class AutorServiceImpl implements AutorService{
 			autorActual.setNombre(autor.getNombre());
 			autorActual.setApellido(autor.getApellido());
 			autorRepository.save(autorActual);
+			return autorActual;
 		}
 		
-		return autorActual;
+		return null;
 	}
 	
 	@Override

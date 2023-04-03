@@ -3,7 +3,6 @@ package com.app.registrolibros.web.app.entities;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,7 +24,7 @@ public class Libro {
 	 
 	 private LocalDate fechaPublicacion;
 	 
-	 @Column(length = 13)
+	 @Column(length = 13, unique = true)
 	 private String ISBN;
 	 
 	 @ManyToOne

@@ -1,17 +1,25 @@
 package com.app.registrolibros.web.app.services.Impl;
 
 import java.util.List;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.app.registrolibros.web.app.dto.TipoLibroDto;
 import com.app.registrolibros.web.app.entities.TipoLibro;
 import com.app.registrolibros.web.app.repositories.TipoLibroRepository;
 import com.app.registrolibros.web.app.services.TipoLibroService;
+
 
 @Service
 public class TipoLibroServiceImpl implements TipoLibroService{
 
 	@Autowired
 	private TipoLibroRepository tipoLibroRepository;
+	
+	@Autowired()
+	private ModelMapper modelMapper;
 	
 	@Override
 	public List<TipoLibro> findAll(){
@@ -24,20 +32,25 @@ public class TipoLibroServiceImpl implements TipoLibroService{
 	}
 	
 	@Override
-	public TipoLibro save(TipoLibro tipoLibro) {
-		return tipoLibroRepository.save(tipoLibro);
+	public TipoLibroDto save(TipoLibroDto tipoLibroDto) {
+		TipoLibro tipoLibro = this.modelMapper.map(tipoLibroDto, TipoLibro.class);
+		TipoLibro tipoLibroGuardado = this.tipoLibroRepository.save(tipoLibro);
+		return this.modelMapper.map(tipoLibroGuardado, TipoLibroDto.class);
 	}
 	
 	@Override
-	public TipoLibro update(Long id, TipoLibro tipoLibro) {
+	public TipoLibroDto update(Long id, TipoLibroDto tipoLibroDto) {
+		
 		TipoLibro tipolibroActual = tipoLibroRepository.findById(id).orElse(null);
 		
 		if(tipolibroActual != null) {
-			tipolibroActual.setNombre(tipoLibro.getNombre());
-			tipoLibroRepository.save(tipolibroActual);
+			tipolibroActual.setNombre(tipoLibroDto.getNombre());
+			TipoLibro tipoLibroActualizado = tipoLibroRepository.save(tipolibroActual);
+			return this.modelMapper.map(tipoLibroActualizado,TipoLibroDto.class);
 		}
 		
-		return tipolibroActual;
+		return null;
+		
 	}
 	
 	@Override

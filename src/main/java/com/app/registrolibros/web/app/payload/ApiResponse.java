@@ -5,9 +5,9 @@ public class ApiResponse<T> {
     private String statusCode;
     private T data;
     private String message;
-    private String error;
+    private T error;
 
-    public ApiResponse(String statusCode, T data, String message, String error) {
+    public ApiResponse(String statusCode, T data, String message, T error) {
         this.statusCode = statusCode;
         this.data = data;
         this.message = message;
@@ -38,11 +38,11 @@ public class ApiResponse<T> {
 		this.message = message;
 	}
 
-	public String getError() {
+	public T getError() {
 		return error;
 	}
 
-	public void setError(String error) {
+	public void setError(T error) {
 		this.error = error;
 	}
 }

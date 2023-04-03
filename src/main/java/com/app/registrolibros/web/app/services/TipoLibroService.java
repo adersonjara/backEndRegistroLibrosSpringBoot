@@ -1,6 +1,7 @@
 package com.app.registrolibros.web.app.services;
 
 import java.util.List;
+import com.app.registrolibros.web.app.dto.TipoLibroDto;
 import com.app.registrolibros.web.app.entities.TipoLibro;
 
 public interface TipoLibroService {
@@ -9,9 +10,9 @@ public interface TipoLibroService {
 	
 	TipoLibro findById(Long id);
 	
-	TipoLibro save(TipoLibro tipoLibro);
+	TipoLibroDto save(TipoLibroDto tipoLibroDto);
 	
-	TipoLibro update(Long id, TipoLibro tipoLibro);
+	TipoLibroDto update(Long id, TipoLibroDto tipoLibroDto);
 	
 	void deleteById(Long id);
 	
